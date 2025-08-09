@@ -1,10 +1,9 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { AntDesign, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import Colors from '../../constants/Colors';
-export default function _layout() {
+import { SafeAreaView } from 'react-native-safe-area-context';
+export default function Layout() {
   return (
     <Tabs screenOptions={{ 
       headerShown: false,
@@ -16,16 +15,16 @@ export default function _layout() {
       },
      }}>
       <Tabs.Screen name="home" 
-      options={{ title: 'Home',
+      options={{ title: 'Accueil',
       tabBarIcon:(({color})=><Ionicons name="home-sharp" size={24} color={color} />)
       }} />
-      <Tabs.Screen name="clients"
-      options={{
-        tabBarIcon:(({color})=><FontAwesome5 name="users" size={24} color={color} />)
-        }}  />
       <Tabs.Screen name="services" 
       options={{
         tabBarIcon:(({color})=><AntDesign name="tool" size={24} color={color} />)
+        }}  />
+      <Tabs.Screen name="clients"
+      options={{
+        tabBarIcon:(({color})=><FontAwesome5 name="users" size={24} color={color} />)
         }}  />
       <Tabs.Screen name="stock" 
       options={{

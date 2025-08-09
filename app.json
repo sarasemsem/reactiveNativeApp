@@ -7,17 +7,18 @@
     "icon": "./assets/images/logo.png",
     "scheme": "seddiksauto",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sarasemsem.seddiksauto"
+      "bundleIdentifier": "com.sarasemsem.seddiksauto",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.sarasemsem.seddiksauto"
     },
     "web": {
@@ -26,7 +27,6 @@
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -37,12 +37,11 @@
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
+
     "extra": {
       "router": {},
       "eas": {
+        "projectId": "8b636556-4fca-4fbd-8303-c235dcd52709"
       }
     },
     "owner": "sarasemsem"

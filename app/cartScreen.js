@@ -7,15 +7,65 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import Octicons from "react-native-vector-icons/Octicons";
 import Colors from "../constants/Colors";
 import { useCartStore } from "../store/cartStore";
+import { db } from "../config/FirebaseConfig";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useClientStore } from '../store/clientStore';
 
 const CartScreen = () => {
     const router = useRouter();
     const cartItems = useCartStore((state) => state.cartItems);
+    const { client, clearClient } = useClientStore();
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.price, 0);
     const tax = subtotal * 0.1; // 10% tax
     const total = subtotal + tax;
     const handlePrint = async () => {
+        try {
+            // Save each cart item to Firestore
+            for (const item of cartItems) {
+              const serviceDetails = item.serviceDetails || {};
+              const docData = {
+                title: item.title,
+                description: item.description || "",
+                price: item.price,
+                client: serviceDetails.client?.name || null,
+                worker: serviceDetails.worker?.name || null,
+                createdAt: serverTimestamp()
+              };
+        
+              await addDoc(collection(db, "cart"), docData);
+            }
+            try {
+                const itemsToSave = cartItems.map((item) => {
+                  const serviceDetails = item.serviceDetails || {};
+                  return {
+                    title: item.title,
+                    description: item.description || "",
+                    price: item.price,
+                    client: serviceDetails.client?.name || null,
+                    worker: serviceDetails.worker?.name || null,
+                  };
+                });
+              
+                if (!itemsToSave.length) {
+                  console.warn("Cart is empty, nothing to save.");
+                  return;
+                }
+              
+                console.log("Trying to save:", itemsToSave);
+              
+                const docRef = await addDoc(collection(db, "validatedCarts"), {
+                  items: itemsToSave,
+                  total,
+                  createdAt: serverTimestamp(),
+                });
+              
+                console.log("Saved validated cart:", docRef.id);
+              } catch (error) {
+                console.error("Error while saving to validatedCarts:", error);
+              }
+              
+
         const htmlContent = `
           <html>
   <head>
@@ -116,11 +166,20 @@ const CartScreen = () => {
   </body>
 </html>
         `;
-      
+      try {
         await Print.printAsync({
           html: htmlContent
         });
-      };
+      } catch (error) {
+        alert("Erreur lors de l'impression des services.");
+      }
+        // 🧹 Clear client and cart after print
+    clearClient();
+    useCartStore.getState().clearCart(); // assuming this exists
+    } catch (error) {
+        alert("Erreur lors de l'enregistrement des services.");
+      }
+    };
     const renderItem = ({ item }) => {
         // Safely handle service details
         const serviceDetails = item.serviceDetails || {};
@@ -163,7 +222,7 @@ const CartScreen = () => {
                 </TouchableOpacity>
             </View>
             <View style={styles.header}>
-                <TouchableOpacity style={styles.circleButton} onPress={() => router.back()}>
+                <TouchableOpacity style={styles.circleButton} onPress={() => router.push("/home")}>
                     <Ionicons name="chevron-back" size={20} color={Colors.WHITE} />
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Panier ({cartItems.length})</Text>
@@ -282,7 +341,7 @@ const styles = StyleSheet.create({
     },
     itemPrice: {
         color: "#888",
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: "outfit",
     },
     quantityControl: {

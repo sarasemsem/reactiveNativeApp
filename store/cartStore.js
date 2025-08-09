@@ -6,5 +6,11 @@ export const useCartStore = create((set) => ({
   addToCart: (items) => set((state) => ({
     cartItems: [...state.cartItems, ...items],
   })),
-  getCartCount: () => set((state) => state.cartItems.length),
-}));
+  getCartCount: () => {
+    const state = useCartStore.getState();
+    return state.cartItems.length;
+  },
+  clearCart: () => set((state) => ({
+    cartItems: [],
+  })),
+  }));

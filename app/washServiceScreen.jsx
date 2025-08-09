@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: "#fff",      
-      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight - 30 : 60,
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight - 40 : 60,
       bottom: 0,
     },
     headerImage: {

@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import React from "react";
 import {
   ImageBackground,
@@ -9,8 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 export default function Login() {
-  const router = useRouter();
+  const navigation = useNavigation();
+  //const router = useRouter();
 
   return (
     <ImageBackground
@@ -35,8 +37,10 @@ export default function Login() {
               </View>
               <TouchableOpacity
                 style={styles.buttonContainer}
-                //onPress={() => router.push('/logIn')}
-                onPress={() => router.push("/home")}
+                onPress={() => 
+                  navigation.navigate('logIn')
+                } 
+                //router.push('/logIn')}
               >
                 <Text style={styles.startText}>Se connecter</Text>
               </TouchableOpacity>
@@ -102,7 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   startText: {
-    fontFamily: "Outfit",
+    fontFamily: "outfit",
     fontSize: 22,
     fontWeight: "600",
     color: "#ffffff",

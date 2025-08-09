@@ -1,29 +1,25 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
-  Image,
   SafeAreaView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
+  Text,
   View
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 import CardItems from "../../components/CardItems";
 import Colors from "../../constants/Colors";
-
-interface Client {
-  id: number;
-  name: string;
-  phone: string;
-  vehicle: string;
-  licensePlate: string;
-}
+import { useClientStore } from "@/store/clientStore";
+import { useRouter } from "expo-router";
+import { useCartStore } from "@/store/cartStore";
+import { Client } from "@/store/clientStore";
 
 export default function Home() {
+const router = useRouter();
   const [searchText, setSearchText] = useState("");
   const [categories, setCategories] = useState([
     { id: 0, name: "Tout" },
@@ -47,6 +43,10 @@ export default function Home() {
   const [filteredClients, setFilteredClients] = useState<Client[]>([]);
   const [showClientResults, setShowClientResults] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const { client, setClient, clearClient } = useClientStore();
+  const cartItems = useCartStore((state) => state.cartItems);
+  
+
 
   // Load clients
   useEffect(() => {
@@ -61,7 +61,6 @@ export default function Home() {
   const filteredCardsItem = selectedCategory.id === 0
   ? cardsItem
   : cardsItem.filter(item => item.categoryId === selectedCategory.id);
-
   // Handle search text changes
   useEffect(() => {
     if (searchText.trim() === "") {
@@ -79,39 +78,17 @@ export default function Home() {
     setShowClientResults(filtered.length > 0);
   }, [searchText, clients]);
 
+
   const handleClientSelect = (client: Client) => {
-    setSelectedClient(client);
+    //setSelectedClient(client);
+    setClient(client);
     setSearchText(`${client.name} (${client.phone})`);
     setShowClientResults(false);
   };
 
   const handleClearClient = () => {
-    setSelectedClient(null);
+    clearClient();
     setSearchText("");
-  };
-
-  const handleServiceSelect = (serviceId: number) => {
-    /* if (!selectedClient) {
-      Alert.alert("Client Required", "Please select a client first before choosing a service.");
-      return;
-    } */
-    if (selectedClient) { 
-    Alert.alert(
-      "Confirm Service Assignment",
-      `Assign ${cardsItem.find(item => item.id === serviceId)?.title} to ${selectedClient.name}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Confirm", onPress: () => assignServiceToClient(serviceId) }
-      ]
-    );
-  }
-  };
-
-  const assignServiceToClient = (serviceId: number) => {
-    // Here you would implement the actual service assignment logic
-    // This might involve API calls or updating your state/store
-    console.log(`Service ${serviceId} assigned to client ${selectedClient?.name}`);
-    Alert.alert("Success", `Service assigned to ${selectedClient?.name}`);
   };
 
   return (
@@ -126,12 +103,22 @@ export default function Home() {
           <Text style={styles.redTitle}>Seddik</Text>
           <Text style={[styles.BlackTitle, { fontWeight: "600" }]}>
             Service
-            <Text> Auto</Text>
+            <Text>Auto</Text>
           </Text>
         </View> 
-          <View style={styles.userImageContainer}>
+          {/* <View style={styles.userImageContainer}>
             <Image source={require("../../assets/images/avatar.png")} style={styles.userImage}/>
-          </View>
+          </View> */}
+          <TouchableOpacity style={styles.cartButton} onPress={() => router.push('/cartScreen')}>
+                      <View>
+                        <Ionicons name="cart-outline" size={30} color={Colors.PRIMARY} />
+                        {cartItems.length > 0 && (
+  <View style={styles.cartBadge}>
+    <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+  </View>
+)}
+                      </View>
+          </TouchableOpacity>
         </View>
 
         {/* Client Search Section */}
@@ -154,12 +141,12 @@ export default function Home() {
             )}
           </View>
           
-          {selectedClient && (
+          {client && (
             <View style={styles.selectedClientContainer}>
               <Text style={styles.selectedClientText}>
-                Client: <Text style={styles.clientNameText}>{selectedClient.name}</Text>
+                Client: <Text style={styles.clientNameText}>{client.name}</Text>
               </Text>
-              <Text style={styles.selectedClientPhone}>{selectedClient.phone}</Text>
+              <Text style={styles.selectedClientPhone}>{client.phone}</Text>
             </View>
           )}
         </View>
@@ -237,7 +224,6 @@ export default function Home() {
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item, index }) => (
               <TouchableOpacity 
-                onPress={() => handleServiceSelect(item.id)}
                 activeOpacity={0.7}
               >
                 <CardItems item={item} index={index} />
@@ -256,10 +242,17 @@ export default function Home() {
         {/* Add Button */}
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => Alert.alert("Add New", "This would open a form to add new services or clients")}
+          onPress={() => {
+            if (cartItems.length > 0) {
+            useCartStore.getState().clearCart();
+            Alert.alert("Panier vidé")
+        } else {
+          Alert.alert("Panier est vide")
+          }}
+          }
         >
-          <Ionicons name="add" size={30} color="white" />
-        </TouchableOpacity>
+          <MaterialCommunityIcons name="cart-minus" size={24} color="white" />
+        </TouchableOpacity> 
       </SafeAreaView>
     </View>
   );
@@ -441,5 +434,25 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 20,
+  },
+  cartButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: Colors.PRIMARY,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartBadgeText: {
+    color: Colors.WHITE,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

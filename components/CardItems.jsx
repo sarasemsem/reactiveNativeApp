@@ -1,37 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Colors from '../constants/Colors';
 import { useItemStore } from '../store/itemStore';
 
-export default function CardItems( {item,index} ) {
+// ✅ Move this outside the component so it's accessible in the styles below
+const { width, height } = Dimensions.get('window');
+const isTablet = width >= 768;
+
+export default function CardItems({ item, index }) {
   const router = useRouter();
   const setItem = useItemStore((state) => state.setItem);
-  console.log("item is here in cardItems : ",item);
+
   return (
-    <Animatable.View delay={index * 120} animation="slideInRight" 
-                duration={500} key={index} style={styles.section}> 
-          {/* <Text style={styles.sectionTitle}>Car Repairs</Text> */}
-        <View style={styles.card}>
+    <Animatable.View delay={index * 120} animation="slideInRight"
+      duration={500} key={index} style={styles.section}>
+      <View style={styles.card}>
         <Image source={item.icon} style={styles.cardImage} />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{item.title}</Text>
           <Text style={styles.cardDescription}>{item.description}</Text>
           <View style={styles.cartContainer}>
             <TouchableOpacity style={styles.cardButton}
-            onPress={() => {
-              setItem(item);
-              router.replace('/serviceDetailsScreen')
-            }}>
+              onPress={() => {
+                setItem(item);
+                router.replace('/serviceDetailsScreen');
+              }}>
               <Ionicons name="cart" size={24} color={Colors.PRIMARY} />
             </TouchableOpacity>
           </View>
         </View>
-      </View> 
+      </View>
     </Animatable.View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -39,14 +42,17 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   card: {
-    width: 155,
-    height: 210,
+    width: isTablet ? width * 0.20 : width * 0.42,
+    height: isTablet ? height * 0.34 : height * 0.29,
     borderRadius: 30,
     marginRight: 10,
     marginBottom: 15,
     backgroundColor: "white",
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   cardContent: {
     paddingLeft: 10,
@@ -63,14 +69,13 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontFamily: 'outfit',
   },
-
   cardImage: {
-    width: 155,
-    height: 100,
+    width: isTablet ? width * 0.20 : width * 0.42,
+    height: isTablet ? height * 0.20 : height * 0.15,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginBottom: 10,
-    objectFit: 'cover',
+    resizeMode: 'cover',
   },
   cartContainer: {
     width: "100%",
@@ -85,4 +90,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   }
-})
+});

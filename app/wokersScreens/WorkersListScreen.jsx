@@ -1,38 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
-const workersData = [
-  { id: '1', name: 'Mehdi Seddik', role: { value: 'chef' }, contact: '0654321098', email: 'mehdi@seddikauto.com' },
-  { id: '2', name: 'Karim Benzema', role: { value: 'mecanicien' }, contact: '0612345678', email: 'karim@seddikauto.com' },
-  { id: '3', name: 'Youssef En-Nesyri', role: { value: 'technicien' }, contact: '0698765432', email: 'youssef@seddikauto.com' },
-];
-
-export default function Settings() {
+export default function WorkersListScreen() {
   const router = useRouter();
-  const [workers, setWorkers] = useState(workersData);
+  const [workers, setWorkers] = useState([]);
   const [expandedWorker, setExpandedWorker] = useState(null);
 
   const toggleWorkerDetails = (workerId) => {
     setExpandedWorker(expandedWorker === workerId ? null : workerId);
   };
 
-  const addNewWorker = () => {
-    router.push('../clientsScreens/addWorkerScreen');
-  };
+// Add new worker
+const addNewWorker = () => {
+  router.push('/wokersScreens/addWorkerScreen');
+};
 
-  const editWorker = (workerId) => {
-    // Edit functionality would go here
-    alert(`Edit worker with ID: ${workerId}`);
-  };
+// Edit existing worker
+const editWorker = (workerId) => {
+  try {
+    router.push({ pathname: '/wokersScreens/addWorkerScreen', params: { id: workerId } });
+  } catch (error) {
+  }
+};
 
-  const deleteWorker = (workerId) => {
+
+  const deleteWorker = async (workerId) => {
     setWorkers(workers.filter(worker => worker.id !== workerId));
+    try {
+      await deleteDoc(doc(db, "workers", workerId)); // if using Firebase
+    } catch (error) {
+      console.error("Error deleting worker:", error);
+    }
   };
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'workers'), (snapshot) => {
@@ -54,12 +59,18 @@ export default function Settings() {
   
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Gestion des Mécaniciens</Text>
-      
+        <SafeAreaView style={styles.safeArea}> 
+            <View style={styles.headerContainer}>
+              <TouchableOpacity onPress={() => router.back()}>
+                        <Ionicons name="chevron-back-circle-sharp" size={30} color={Colors.PRIMARY}
+                         style={{paddingRight: 20}} />
+                      </TouchableOpacity>
+                <Text style={styles.headerText}>Gestion des travailleurs</Text>
+            </View>
+    <View style={styles.container}> 
       {/* Add New Worker Button */}
       <TouchableOpacity style={styles.addButton} 
-      onPress={ () => router.push('../clientsScreens/AddWorkerScreen')}>
+      onPress={ () => addNewWorker()}>
         <Ionicons name="add" size={24} color="white" />
         <Text style={styles.addButtonText}>Ajouter un mécanicien</Text>
       </TouchableOpacity>
@@ -90,12 +101,17 @@ export default function Settings() {
             {expandedWorker === item.id && (
               <View style={styles.workerDetails}>
                 <View style={styles.detailRow}>
-                  <Ionicons name="call" size={20} color={Colors.PRIMARY} />
+                  <Ionicons name="call" size={20} color="red" />
                   <Text style={styles.detailText}>{item.contact}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                  <Ionicons name="mail" size={20} color={Colors.PRIMARY} />
+                  <Ionicons name="mail" size={20} color="red" />
                   <Text style={styles.detailText}>{item.email}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                <Ionicons name="checkmark-circle" size={20} 
+                color={item.availability?.name === 'Disponible' ? 'green' : 'red'} />
+                  <Text style={styles.detailText}>{item.availability?.name}</Text>
                 </View>
                 
                 <View style={styles.actionButtons}>
@@ -121,6 +137,8 @@ export default function Settings() {
         )}
       />
     </View>
+      </SafeAreaView>
+    
   );
 }
 
@@ -129,15 +147,29 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#f5f5f5',
+    top: Platform.OS === "android" ? StatusBar.currentHeight + 20 : 60,
   },
-  header: {
-    fontSize: 24,
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    position: "absolute",
+    paddingLeft: 20,
     top: 0,
-    paddingTop: 30,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+    backgroundColor: Colors.GRAY.LIGHT,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 60,
+    alignItems: "center",
+  },
+  headerText: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: Colors.PRIMARY,
-    marginBottom: 20,
-    textAlign: 'center',
+    fontFamily: 'outfit-bold',
   },
   addButton: {
     flexDirection: 'row',
@@ -147,10 +179,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+    position: "relative",
   },
   addButtonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     marginLeft: 10,
     fontWeight: 'bold',
   },
@@ -171,6 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.BLACK,
+    fontFamily: 'outfit-bold',
   },
   workerRole: {
     fontSize: 14,

@@ -1,5 +1,6 @@
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
+import { Ionicons } from '@expo/vector-icons'
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -10,18 +11,23 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
-import TopBarButtons from "../../components/TopBarButtons";
 import Colors from "../../constants/Colors";
 import { useClientsContext } from "../../lib/ClientsContext";
+import { TouchableOpacity } from "react-native";
 
 const AddEditClientScreen = ({ route }) => {
+    const router = useRouter();
     const navigation = useNavigation();
     const { addClient, updateClient } = useClientsContext();
   const clientToEdit = route?.params?.client || null;
-
+  const [clientsCopy, setClientsCopy] = useState([
+    { id: 1, name: "Mohamed hedi", phone: "555-1234", vehicle: "Toyota Camry", licensePlate: "ABC-123", },
+    { id: 2, name: "Nabil youssef", phone: "555-5678", vehicle: "Honda Civic", licensePlate: "XYZ-789", },
+    { id: 3, name: "yassin korba", phone: "555-9012", vehicle: "Toyota Camry", licensePlate: "ABC-123", },
+    { id: 4, name: "Nabil hedi", phone: "555-3456", vehicle: "Honda Civic", licensePlate: "XYZ-789", },
+  ]);
   // State for client fields
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -57,7 +63,6 @@ const AddEditClientScreen = ({ route }) => {
     }
 
     const clientData = {
-      id: clientToEdit?.id || Date.now().toString(),
       name: name.trim(),
       phone: phone.trim(),
       vehicle: vehicle.trim(),
@@ -69,7 +74,8 @@ const AddEditClientScreen = ({ route }) => {
     } else {
       addClient(clientData);
     }
-    navigation.replace("clients");
+    navigation.navigate("/clients");
+    //router.replace("/clients");
   };
 
   const onClear = () => {
@@ -78,20 +84,25 @@ const AddEditClientScreen = ({ route }) => {
     setVehicle("");
     setLicensePlate("");
   };
-
+const nav = () => {
+    router.back()
+};
   return (
     <View style={styles.container}>   
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>
+        <TouchableOpacity onPress={nav}>
+        <Ionicons name="chevron-back-circle-sharp" size={30} color={Colors.PRIMARY}
+          style={{paddingRight: 20}} />
+      </TouchableOpacity>
+        <Text style={styles.headerText} >
           {clientToEdit ? "Modifier Client" : "Nouveau Client"}
         </Text>
-        <TopBarButtons isBackButton={true} />
       </View>
 
       <ScrollView contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
       <View style={styles.iconContainer}>
-      <FontAwesome5 name="car-side" size={24} color="#d32f2f" style={styles.icon}/>
+      <FontAwesome5 name="car-side" size={20} color="#d32f2f" style={styles.icon}/>
       <Text style={styles.label}>
           Remplir les champs avec les informations du client
         </Text>
@@ -167,10 +178,12 @@ const styles = StyleSheet.create({
     position: "relative",
     flex: 1,
   },
+
   iconContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginTop: 12,
+    marginBottom: 8,
   },
   safeArea: {
     position : "relative",
@@ -184,18 +197,21 @@ const styles = StyleSheet.create({
     right: 0,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 65,
     paddingBottom: 18,
-    paddingLeft: 70,
-    alignItems: "flex-start",
-    justifyContent: "center",
+    paddingLeft: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
     marginBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: Colors.GRAY.LIGHT,
+    zIndex: 1,
   },
   icon: {
     marginRight: 10,
   },
   headerText: {
-    color: Colors.BLACK,
+    fontFamily: "outfit-bold",
+    color: Colors.PRIMARY,
     fontSize: 22,
     fontWeight: "500",
   },
@@ -224,7 +240,7 @@ const styles = StyleSheet.create({
     color: "#444",
     marginBottom: 6,
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 12,
   },
   input: {
     width: "100%",
@@ -240,6 +256,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 30,
     marginHorizontal: 20, 
+    marginBottom: 30,
   },
   saveButton: {
     flex: 1,

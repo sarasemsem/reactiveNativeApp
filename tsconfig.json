@@ -4,6 +4,7 @@
     "allowJs": true,
     "target": "esnext",
     "module": "esnext",
+    "moduleResolution": "node",
     "jsx": "react",
     "strict": false,
     "noEmit": true,

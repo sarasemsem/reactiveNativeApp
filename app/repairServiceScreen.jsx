@@ -14,15 +14,10 @@ import {
 } from "react-native";
 import CustomDropdown from "../components/CustomDropdown";
 import Colors from "../constants/Colors";
+import { useClientStore } from "../store/clientStore";
 
 const RepairServiceScreen = ({ selectedServices, setSelectedServices }) => {
-  const client = {
-    name: "John Smith",
-    phone: "+1 234 567 8900",
-    vehicle: "Toyota Camry",
-    year: "2025",
-    license: "ABC 123",
-  };
+  const client = useClientStore((state) => state.client);
 
   const workers = [
     { id: 1, name: "Ouvrier 1" },
@@ -35,36 +30,26 @@ const RepairServiceScreen = ({ selectedServices, setSelectedServices }) => {
   const [price, setPrice] = useState("");
 
   const handleAddRepair = () => {
-    console.warn(selectedWorker);
-    console.warn(damageDescription);
-    console.warn(price);
-    /* if (!selectedWorker) {
-      Alert.alert("Erreur", "Veuillez sélectionner un technicien");
-      return;
-    } */
-
     if (!price || isNaN(parseInt(price))) {
       Alert.alert("Erreur", "Veuillez entrer un montant valide");
       return;
     }
+
     const repairData = {
       id: Date.now(),
       title: "Réparation Véhicule",
       price: parseInt(price),
       icon: <Octicons name="tools" size={24} color="#d32f2f" />,
       serviceDetails: {
-        client: client,
+        client: client || null,
         worker: selectedWorker,
         damageDescription: damageDescription,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
       }
     };
+
     setSelectedServices(prev => [...prev, repairData]);
   };
-
-  useEffect(() => {
-    // This will trigger the parent to update when our data changes
-  }, [selectedWorker, damageDescription, price]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -75,71 +60,79 @@ const RepairServiceScreen = ({ selectedServices, setSelectedServices }) => {
         <View style={styles.header}>
           <Text style={styles.headerText}>Réparation Véhicule</Text>
         </View>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Client Details */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="person-circle-sharp" size={25} color={Colors.PRIMARY} style={styles.headerIcon}/>
-              <Text style={styles.sectionTitle}>Client</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Nom:</Text>
-              <Text style={styles.value}>{client.name}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Téléphone:</Text>
-              <Text style={styles.value}>{client.phone}</Text>
-            </View>
-          </View>
 
-          {/* Vehicle Details */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="car" size={25} color={Colors.PRIMARY} style={styles.headerIcon}/>
-              <Text style={styles.sectionTitle}>Véhicule</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Modèle:</Text>
-              <Text style={styles.value}>{client.vehicle}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Année:</Text>
-              <Text style={styles.value}>{client.year}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.label}>Numéro de série:</Text>
-              <Text style={styles.value}>{client.license}</Text>
-            </View>
-          </View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {client && (
+            <>
+              {/* Client Details */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="person-circle-sharp" size={25} color={Colors.PRIMARY} style={styles.headerIcon} />
+                  <Text style={styles.sectionTitle}>Client</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Nom:</Text>
+                  <Text style={styles.value}>{client.name}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Téléphone:</Text>
+                  <Text style={styles.value}>{client.phone}</Text>
+                </View>
+              </View>
+
+              {/* Vehicle Details */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Ionicons name="car" size={25} color={Colors.PRIMARY} style={styles.headerIcon} />
+                  <Text style={styles.sectionTitle}>Véhicule</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Modèle:</Text>
+                  <Text style={styles.value}>{client.vehicle}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Année:</Text>
+                  <Text style={styles.value}>{client.year}</Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={styles.label}>Numéro de série:</Text>
+                  <Text style={styles.value}>{client.license}</Text>
+                </View>
+              </View>
+            </>
+          )}
 
           {/* Repair Details */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="build" size={25} color={Colors.PRIMARY} style={styles.headerIcon}/>
+              <Ionicons name="build" size={25} color={Colors.PRIMARY} style={styles.headerIcon} />
               <Text style={styles.sectionTitle}>Détails de la réparation</Text>
             </View>
+
             <Text style={styles.inputLabel}>Description du dommage</Text>
             <TextInput
               style={styles.inputBox}
-              placeholder="Enter damage description"
+              placeholder="Décrivez le dommage"
               multiline
               value={damageDescription}
               onChangeText={setDamageDescription}
             />
+
             <Text style={styles.inputLabel}>Technicien assigné</Text>
             <CustomDropdown
               data={workers}
               onSelect={setSelectedWorker}
-              defaultButtonText="Selectionner un technicien"
+              defaultButtonText="Sélectionner un technicien"
               value={selectedWorker}
             />
+
             <Text style={styles.inputLabel}>Montant</Text>
             <TextInput
               style={styles.inputBox}
               keyboardType="numeric"
-              placeholder="taper le montant"
+              placeholder="Entrer le montant"
               value={price}
-              onChangeText={(value)=> setPrice(value)}
+              onChangeText={(value) => setPrice(value)}
               onBlur={handleAddRepair}
             />
           </View>
@@ -149,6 +142,8 @@ const RepairServiceScreen = ({ selectedServices, setSelectedServices }) => {
   );
 };
 
+export default RepairServiceScreen;
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -156,17 +151,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: Colors.PRIMARY,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 20 : 60,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 40 : 60,
     paddingBottom: 16,
     alignItems: "center",
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  headerIcon: {
-    marginRight: 8,
   },
   headerText: {
     color: "#fff",
@@ -187,6 +174,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 1,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  headerIcon: {
+    marginRight: 8,
   },
   sectionTitle: {
     fontWeight: "bold",
@@ -222,5 +217,3 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 });
-
-export default RepairServiceScreen;

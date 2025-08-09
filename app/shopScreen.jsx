@@ -70,7 +70,7 @@ export default function ShopScreen({selectedServices, setSelectedServices}) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.replace("/home")}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 60,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 50 : 60,
     height: "100%",
     flex: 1,
   },    

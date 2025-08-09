@@ -1,13 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { collection, addDoc } from 'firebase/firestore';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Alert,
+} from 'react-native';
+import {
+  collection,
+  addDoc,
+  doc,
+  getDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
-import CustomDropdown from "../../components/CustomDropdown";
+import CustomDropdown from '../../components/CustomDropdown';
 
 export default function AddWorkerScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams();
+
   const [name, setName] = useState('');
   const [role, setRole] = useState(null);
   const [contact, setContact] = useState('');
@@ -15,41 +31,71 @@ export default function AddWorkerScreen() {
   const [availability, setAvailability] = useState(null);
   const [notes, setNotes] = useState('');
 
-  const [roleOpen, setRoleOpen] = useState(false);
-  const [availabilityOpen, setAvailabilityOpen] = useState(false);
-
-  const [roleItems, setRoleItems] = useState([
+  const [roleItems] = useState([
     { id: '1', name: 'Chef', value: 'chef' },
     { id: '2', name: 'mecanicien', value: 'mecanicien' },
     { id: '3', name: 'technicien', value: 'technicien' },
     { id: '4', name: 'nettoyeur', value: 'nettoyeur' },
   ]);
 
-  const [availabilityItems, setAvailabilityItems] = useState([
+  const [availabilityItems] = useState([
     { id: '1', name: 'Disponible' },
     { id: '2', name: 'Non Disponible' },
   ]);
 
+  useEffect(() => {
+    if (id) {
+      const fetchWorker = async () => {
+        try {
+          const docRef = doc(db, 'workers', id as string);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setName(data.name || '');
+            setRole(data.role || null);
+            setContact(data.contact || '');
+            setEmail(data.email || '');
+            setAvailability(data.availability || null);
+            setNotes(data.notes || '');
+          }
+        } catch (error) {
+          Alert.alert('Erreur', "Impossible de récupérer les données.");
+        }
+      };
+      fetchWorker();
+    }
+  }, [id]);
+
   const saveWorker = async () => {
     if (!name || !contact) {
-      alert("Nom et numéro de contact sont requis.");
+      alert('Nom et numéro de contact sont requis.');
       return;
     }
-  
+
     try {
-      await addDoc(collection(db, 'workers'), {
+      const data = {
         name,
         role,
         contact,
         email,
         availability,
         notes,
-        createdAt: new Date(),
-      });
-      alert('Mécanicien ajouté avec succès');
-      router.back(); // return to previous screen
+        updatedAt: new Date(),
+      };
+
+      if (id) {
+        await updateDoc(doc(db, 'workers', id as string), data);
+        alert('Mécanicien mis à jour avec succès');
+      } else {
+        await addDoc(collection(db, 'workers'), {
+          ...data,
+          createdAt: new Date(),
+        });
+        alert('Mécanicien ajouté avec succès');
+      }
+
+      router.back();
     } catch (error) {
-      console.error('Erreur ajout Firestore:', error);
       alert("Une erreur s'est produite.");
     }
   };
@@ -60,7 +106,9 @@ export default function AddWorkerScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ajouter un mécanicien</Text>
+        <Text style={styles.headerTitle}>
+          {id ? 'Modifier un mécanicien' : 'Ajouter un mécanicien'}
+        </Text>
         <TouchableOpacity onPress={saveWorker}>
           <Text style={styles.saveText}>Enregistrer</Text>
         </TouchableOpacity>
@@ -68,7 +116,9 @@ export default function AddWorkerScreen() {
 
       <Text style={styles.sectionTitle}>Informations du mécanicien</Text>
 
-      <Text style={styles.label}>Nom complet<Text style={styles.required}>*</Text></Text>
+      <Text style={styles.label}>
+        Nom complet<Text style={styles.required}>*</Text>
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Nom complet"
@@ -76,7 +126,9 @@ export default function AddWorkerScreen() {
         onChangeText={setName}
       />
 
-      <Text style={styles.label}>Numéro de Contact<Text style={styles.required}>*</Text></Text>
+      <Text style={styles.label}>
+        Numéro de Contact<Text style={styles.required}>*</Text>
+      </Text>
       <View style={styles.inputContainer}>
         <Ionicons name="call-outline" size={20} color="#999" style={styles.icon} />
         <TextInput
@@ -87,7 +139,8 @@ export default function AddWorkerScreen() {
           keyboardType="phone-pad"
         />
       </View>
-      <Text style={styles.label}>Email<Text style={styles.required}>*</Text></Text>
+
+      <Text style={styles.label}>Email</Text>
       <View style={styles.inputContainer}>
         <Ionicons name="mail-outline" size={20} color="#999" style={styles.icon} />
         <TextInput
@@ -98,23 +151,26 @@ export default function AddWorkerScreen() {
           keyboardType="email-address"
         />
       </View>
-      <Text style={styles.label}>Role<Text style={styles.required}>*</Text></Text>
+
+      <Text style={styles.label}>
+        Role<Text style={styles.required}>*</Text>
+      </Text>
       <CustomDropdown
-              data={roleItems}
-              onSelect={setRole}
-              defaultButtonText="Role"
-              value={role}
-            />
+        data={roleItems}
+        onSelect={setRole}
+        defaultButtonText="Role"
+        value={role}
+      />
 
       <Text style={styles.sectionTitle}>Plus de Details</Text>
 
       <Text style={styles.label}>Disponibilité</Text>
       <CustomDropdown
-              data={availabilityItems}
-              onSelect={setAvailability}
-              defaultButtonText="Disponibilité"
-              value={availability}
-            />
+        data={availabilityItems}
+        onSelect={setAvailability}
+        defaultButtonText="Disponibilité"
+        value={availability}
+      />
 
       <Text style={styles.label}>Notes</Text>
       <TextInput
@@ -130,7 +186,7 @@ export default function AddWorkerScreen() {
         <Text style={styles.saveButtonText}>Enregistrer</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.replace("/clients")}>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => router.replace('/clients')}>
         <Text style={styles.cancelButtonText}>Annuler</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -192,11 +248,6 @@ const styles = StyleSheet.create({
   phoneInput: {
     flex: 1,
     height: 40,
-  },
-  dropdown: {
-    marginTop: 5,
-    borderRadius: 8,
-    borderColor: '#ddd',
   },
   notesInput: {
     borderWidth: 1,

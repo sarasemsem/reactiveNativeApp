@@ -16,7 +16,7 @@ export default function TopBarButtons({isBackButton = true, isCartButton = true}
               {isBackButton && <TouchableOpacity
                 style={styles.backButton}
                 //onPress={() => router.back()
-                // onPress={() => navigation.goBack()
+                //onPress={() => navigation.goBack()
                 onPress={() => router.replace("/home")
                 }
               >
@@ -47,8 +47,9 @@ const styles = StyleSheet.create({
         top: 0,
         left: 0,
         right: 0,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 0 : 40,
+        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 50 : 90,
         paddingHorizontal: 16,
+        paddingBottom: 16,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",

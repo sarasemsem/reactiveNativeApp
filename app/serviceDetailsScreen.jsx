@@ -119,7 +119,7 @@ export default function ServiceDetailsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff",
-    marginTop: Platform.OS === "android" ? StatusBar.currentHeight -50 : -50 }} edges={["top"]}>
+    marginTop: Platform.OS === "android" ? StatusBar.currentHeight + -90 : -50 }} edges={["top"]}>
       {/*<View style={{paddingTop: Platform.OS === "android" ? StatusBar.c^^urrentHeight -50 : -50}}>*/}
       {item.id !== 2 && (
         <TopBarButtons isBackButton={true} />

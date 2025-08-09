@@ -2,7 +2,6 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import React from "react";
 import {
-  FlatList,
   Platform,
   SafeAreaView,
   StatusBar,
@@ -11,33 +10,28 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import TopBarButtons from "../../components/TopBarButtons";
 import Colors from "../../constants/Colors";
 import { useClientsContext } from "../../lib/ClientsContext";
-
-/* const clients = [
-  {
-    id: "1",
-    name: "John Doe",
-    phone: "123-456-7890",
-    vehicle: "Toyota Camry",
-    licensePlate: "ABC-123",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    phone: "987-654-3210",
-    vehicle: "Honda Civic",
-    licensePlate: "XYZ-789",
-  },
-  // Add more clients as needed
-]; */
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 const Clients = () => {
   //const router = useRouter();
   const { clients } = useClientsContext();
   const navigation = useNavigation();
-  const renderItem = ({ item }) => (
+  const { deleteClient } = useClientsContext();
+
+  return (
+    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Clients</Text>
+      </View>
+
+      <SwipeListView
+  data={clients}
+  keyExtractor={(item) => item.id}
+  contentContainerStyle={styles.listContent}
+  renderItem={({ item }) => (
     <View style={styles.clientItem}>
       <Ionicons name="person-circle-outline" size={36} color="#d32f2f" />
       <View style={{ marginLeft: 12, flex: 1 }}>
@@ -46,32 +40,28 @@ const Clients = () => {
         <View style={styles.vehicleRow}>
           <MaterialCommunityIcons name="car" size={18} color="#888" />
           <Text style={styles.vehicleText}>{item.vehicle}</Text>
-          <MaterialCommunityIcons name="license" size={18} color="#888" style={{marginLeft: 8}} />
+          <MaterialCommunityIcons name="license" size={18} color="#888" style={{ marginLeft: 8 }} />
           <Text style={styles.licenseText}>{item.licensePlate}</Text>
         </View>
       </View>
     </View>
-  );
+  )}
+  ListEmptyComponent={
+    <Text style={{ textAlign: "center", color: "#888", marginTop: 40 }}>
+      No clients yet.
+    </Text>
+  }
+  renderHiddenItem={({ item }) => (
+    <TouchableOpacity
+      style={styles.hiddenDeleteButton}
+      onPress={() => deleteClient(item.id)}
+    >
+      <Ionicons name="trash" size={30} color="#fff" />
+    </TouchableOpacity>
+  )}
+  rightOpenValue={-100}
+/>
 
-  return (
-    <View style={styles.container}>
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Clients</Text>
-        <TopBarButtons isBackButton={false} />
-      </View>
-
-      <FlatList
-        data={clients}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <Text style={{ textAlign: "center", color: "#888", marginTop: 40 }}>
-            No clients yet.
-          </Text>
-        }
-      />
 
       {/* Add Client Floating Button */}
       <TouchableOpacity
@@ -112,14 +102,14 @@ const styles = StyleSheet.create({
   },
   headerText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontFamily: "outfit-bold",
     fontSize: 22,
     letterSpacing: 1,
   },
   listContent: {
     position: "absolute",
     width: "100%",
-    top: 60,
+    top: 80,
     padding: 18,
     paddingBottom: 100,
   },
@@ -136,7 +126,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   clientName: {
-    fontWeight: "bold",
+    fontWeight: "outfit-bold",
     fontSize: 16,
     color: "#222",
   },
@@ -178,4 +168,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
   },
+  hiddenDeleteButton: {
+    alignItems: 'flex-end',
+    backgroundColor: '#d32f2f',
+    paddingHorizontal: 30,
+    flex: 1,
+    justifyContent: 'center',
+    borderRadius: 10,
+    marginBottom: 14,
+  }, 
 });

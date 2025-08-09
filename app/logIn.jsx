@@ -15,10 +15,9 @@ import { useAuth } from "../lib/authContext";
 export default function LogIn() {
   const navigation = useNavigation();
   const router = useRouter();
-  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-
-  const [emailError, setEmailError] = React.useState("");
+  const [identifier, setIdentifier] = React.useState(""); // email or phone
+  const [identifierError, setIdentifierError] = React.useState("");
   const [passwordError, setPasswordError] = React.useState("");
   const { signIn } = useAuth();
 
@@ -28,33 +27,40 @@ export default function LogIn() {
     });
   }, []);
   const onSignInPress = async () => {
-    setEmailError("");
+    setIdentifierError("");
     setPasswordError("");
   
-    if (!email.trim()) {
-      setEmailError("Email is required");
-      return;
-    }
-    if (!password.trim()) {
-      setPasswordError("Password is required");
+    if (!identifier.trim()) {
+      setIdentifierError("Email ou numéro requis");
       return;
     }
   
-    const result = await signIn(email, password);
+    if (!password.trim()) {
+      setPasswordError("Mot de passe est requis");
+      return;
+    }
+  
+    const isEmail = identifier.includes("@");
+    const loginIdentifier = isEmail
+      ? identifier.trim()
+      : `${identifier.replace(/\D/g, "")}@noemail.com`;
+  
+    const result = await signIn(loginIdentifier, password);
   
     if (result.success) {
-      router.replace("/home");
+      router.push("home");
     } else {
-      if (result.msg?.toLowerCase().includes("email")) {
-        setEmailError("Adresse email invalide");
+      if (result.msg?.toLowerCase().includes("email") || result.msg?.toLowerCase().includes("phone")) {
+        setIdentifierError("Adresse email ou numéro invalide");
       } else if (result.msg?.toLowerCase().includes("password")) {
         setPasswordError("Mot de passe incorrect");
       } else {
-        setEmailError("Erreur de connexion");
+        setIdentifierError("Erreur de connexion");
         setPasswordError(result.msg || "");
       }
     }
   };
+  
 
   return (
     <View style={styles.safeArea}>
@@ -66,26 +72,28 @@ export default function LogIn() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.titleContainer}>
             <Text style={styles.loginTitle}>Bienvenue</Text>
-            <Text style={styles.welcomeText}>
-              Good to see you back!{" "}
-              <Ionicons name="heart-sharp" size={16} color="white" />
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.welcomeText}>Good to see you back!</Text>
+              <Ionicons name="heart-sharp" size={16} color="white" style={{ marginLeft: 4 }} />
+            </View>
+
           </View>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.textInput}
-              placeholder="Email"
-              placeholderTextColor="#B5B5B5"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onChangeText={(email) => {
-                setEmail(email);
-                setEmailError(""); // Clear the error as the user types
-              }}
-            />
+  style={styles.textInput}
+  placeholder="Email ou Numéro"
+  placeholderTextColor="#B5B5B5"
+  keyboardType="default"
+  autoCapitalize="none"
+  onChangeText={(text) => {
+    setIdentifier(text);
+    setIdentifierError("");
+  }}
+/>
+
           </View>
-          {emailError ? (
-            <Text style={styles.errorText}>{emailError}</Text>
+          {identifierError ? (
+            <Text style={styles.errorText}>{identifierError}</Text>
           ) : null}
           <View style={styles.inputContainer}>
             <TextInput
@@ -181,7 +189,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     height: 50,
-    backgroundColor: "",
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",

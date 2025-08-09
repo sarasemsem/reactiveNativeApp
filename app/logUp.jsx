@@ -28,6 +28,7 @@ export default function LogUp() {
   const [passwordError, setPasswordError] = useState('');
   const [fullNameError, setFullNameError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const { register } = useAuth();
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -35,55 +36,54 @@ export default function LogUp() {
 
   const validateFields = () => {
     let isValid = true;
-
+  
     if (!fullName.trim()) {
-      setFullNameError('Full name is required.*');
+      setFullNameError("Full name is required.*");
       isValid = false;
     } else {
-      setFullNameError('');
+      setFullNameError("");
     }
-
-    if (!email.trim()) {
-      setEmailError('Email is required.*');
-      isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Invalid email format.*');
-      isValid = false;
-    } else {
-      setEmailError('');
-    }
-
+  
     if (!password.trim()) {
-      setPasswordError('Password is required.*');
+      setPasswordError("Password is required.*");
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters.*');
+      setPasswordError("Password must be at least 6 characters.*");
       isValid = false;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
-
+  
     if (!phoneNumber.trim()) {
-      setPhoneError('Phone number is required.*');
+      setPhoneError("Phone number is required.*");
       isValid = false;
     } else if (!/^[0-9]+$/.test(phoneNumber)) {
-      setPhoneError('Phone number must be numeric.*');
+      setPhoneError("Phone number must be numeric.*");
       isValid = false;
     } else {
-      setPhoneError('');
+      setPhoneError("");
     }
-
+  
+    // Handle generated email if empty
+    if (!email.trim()) {
+      setEmail(`${phoneNumber.replace(/\D/g, "")}@noemail.com`);
+    } else {
+      setEmailError("");
+    }
+  
     return isValid;
   };
+  
 
   const onCreateAccountPress = async () => {
+    console.log("Creating account...");
     if (!validateFields()) return;
-  
-    const { register } = useAuth();
-    const res = await register(email, password);
+    console.log("Fields are valid");
+    const res = await register(email, password,fullName,phoneNumber);
+    console.log("Register response:", res);
     if (res.success) {
       Alert.alert("Success", "Account created successfully!");
-      router.replace('/home');
+      router.replace('/logIn');
     } else {
       Alert.alert("Error", res.msg || "Failed to register.");
     }
@@ -97,7 +97,7 @@ export default function LogUp() {
       source={require('../assets/images/Wheels_Cleaning.jpg')}
     >
       <View style={styles.safeArea}>
-        <TouchableOpacity onPress={() => router.push('/Login')} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.push('/logIn')} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
 

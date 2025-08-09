@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Colors from '../../constants/Colors';
-
+import { Platform } from 'react-native';
+import { Alert } from 'react-native';
+import { useCartStore} from '../../store/cartStore';
 const services = [
   {
     id: 1,
@@ -42,6 +44,8 @@ const services = [
 export default function ServicesScreen() {
   const [selectedServices, setSelectedServices] = useState([]);
   const router = useRouter();
+  const { addToCart } = useCartStore();
+  const cartItems = useCartStore((state) => state.cartItems);
 
   const toggleService = (service) => {
     setSelectedServices(prev => {
@@ -54,6 +58,16 @@ export default function ServicesScreen() {
     });
   };
 
+  const validateCart = () => {
+    if (selectedServices.length === 0) {
+      Alert.alert('Erreur', 'Veuillez sélectionner au moins un service');
+      return;
+    } 
+    addToCart(selectedServices);
+    setSelectedServices([]);
+    Alert.alert('Succès', 'Services ajoutés au panier');
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -62,9 +76,9 @@ export default function ServicesScreen() {
         <TouchableOpacity style={styles.cartButton} onPress={() => router.push('/cartScreen')}>
             <View>
               <Ionicons name="cart-outline" size={30} color="white" />
-              {selectedServices.length > 0 && (
+              {cartItems.length > 0 && (
                 <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>{selectedServices.length}</Text>
+                  <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
                 </View>
               )}
             </View>
@@ -117,7 +131,7 @@ export default function ServicesScreen() {
             </Text>
             <TouchableOpacity 
               style={styles.confirmButton}
-              onPress={() => router.push('/checkout')}
+              onPress={() => validateCart()}
             >
               <Text style={styles.confirmButtonText}>
                 Confirmer ({selectedServices.length})
@@ -139,11 +153,10 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 2 : 45,
     alignItems: 'center',
     padding: 16,
     backgroundColor: Colors.PRIMARY,
-    paddingTop : 45,
-
   },
   headerTitle: {
     fontSize: 20,

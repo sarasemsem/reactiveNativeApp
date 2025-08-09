@@ -1,9 +1,10 @@
 import { AuthProvider } from "@/lib/authContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClientsProvider } from "../lib/ClientsContext";
 import { StockProvider } from "../lib/StockContext";
+import { NavigationContainer } from '@react-navigation/native';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -18,15 +19,17 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
   return (
-    <SafeAreaProvider>
-      <AuthProvider> 
+    <AuthProvider>
       <ClientsProvider>
-      <StockProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-      </StockProvider>
+        <StockProvider>
+          <SafeAreaProvider>
+            {/*<Slot />*/}
+            <Stack screenOptions={{ headerShown: false }} />
+          </SafeAreaProvider>
+        </StockProvider>
       </ClientsProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    </AuthProvider>
   );
 }

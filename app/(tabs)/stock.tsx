@@ -14,6 +14,8 @@ import {
   View
 } from 'react-native';
 import Colors from '../../constants/Colors';
+import { useStock } from '../../lib/StockContext';
+import { products } from '../../data/products';
 // Catégories disponibles
 const categories = ['Tous', 'Huile', 'Filtre', 'Accessoires', 'Pièces'];
 
@@ -35,7 +37,6 @@ export default function Stock() {
       Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos.');
       return;
     }
-   // const { stock, setStock } = useStock();
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
@@ -118,21 +119,25 @@ export default function Stock() {
   const formatPrice = (price) => {
     return parseFloat(price).toFixed(2) + ' €';
   };
+  const allProducts = [...stock, ...products];
 
   // Filtrer les produits par catégorie et recherche
-  const filteredProducts = stock.filter(product => {
+  const filteredProducts = allProducts.filter(product => {
     const matchesCategory = selectedCategory === 'Tous' || product.category === selectedCategory;
     const matchesSearch = searchQuery === '' || 
       product.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }) => {
+    const imageSource = 
+    typeof item.image === 'number' ? item.image : { uri: item.image };
+    return (
     <TouchableOpacity 
       style={styles.itemContainer}
       onPress={() => showProductDetails(item)}
     >
-      <Image source={{ uri: item.image }} style={styles.itemImage} />
+      <Image source={imageSource} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <View style={styles.itemHeader}>
           <Text style={styles.itemName}>{item.name}</Text>
@@ -176,6 +181,7 @@ export default function Stock() {
       </TouchableOpacity>
     </TouchableOpacity>
   );
+};
 
   // Couleurs pour chaque catégorie
   const getCategoryColor = (category) => {
@@ -347,9 +353,10 @@ export default function Stock() {
             {selectedProduct && (
               <>
                 <Image 
-                  source={{ uri: selectedProduct.image }} 
+                  source={typeof selectedProduct.image === 'number' ? selectedProduct.image : { uri: selectedProduct.image }} 
                   style={styles.modalImage} 
                 />
+
                 <Text style={styles.modalTitle}>{selectedProduct.name}</Text>
                 
                 <View style={styles.modalInfoContainer}>
